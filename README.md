@@ -4,44 +4,60 @@
 
 ## Question 1:
 What is count of records for the 2024 Yellow Taxi Data?
-- 65,623
-- 840,402
-- 20,332,093
-- 85,431,289
+- [ ] 65,623
+- [ ] 840,402
+- [x] 20,332,093
+- [ ] 85,431,289
 
+```sql
+SELECT COUNT(*) FROM `dez-terraform.zoomcamp.yellow_2024`;
+```
 
 ## Question 2:
 Write a query to count the distinct number of PULocationIDs for the entire dataset on both the tables.</br> 
 What is the **estimated amount** of data that will be read when this query is executed on the External Table and the Table?
 
-- 18.82 MB for the External Table and 47.60 MB for the Materialized Table
-- 0 MB for the External Table and 155.12 MB for the Materialized Table
-- 2.14 GB for the External Table and 0MB for the Materialized Table
-- 0 MB for the External Table and 0MB for the Materialized Table
+- [ ] 18.82 MB for the External Table and 47.60 MB for the Materialized Table
+- [x] 0 MB for the External Table and 155.12 MB for the Materialized Table
+- [ ] 2.14 GB for the External Table and 0MB for the Materialized Table
+- [ ] 0 MB for the External Table and 0MB for the Materialized Table
 
 ## Question 3:
 Write a query to retrieve the PULocationID from the table (not the external table) in BigQuery. Now write a query to retrieve the PULocationID and DOLocationID on the same table. Why are the estimated number of Bytes different?
-- BigQuery is a columnar database, and it only scans the specific columns requested in the query. Querying two columns (PULocationID, DOLocationID) requires 
+- [x] BigQuery is a columnar database, and it only scans the specific columns requested in the query. Querying two columns (PULocationID, DOLocationID) requires 
 reading more data than querying one column (PULocationID), leading to a higher estimated number of bytes processed.
-- BigQuery duplicates data across multiple storage partitions, so selecting two columns instead of one requires scanning the table twice, 
+- [ ] BigQuery duplicates data across multiple storage partitions, so selecting two columns instead of one requires scanning the table twice, 
 doubling the estimated bytes processed.
-- BigQuery automatically caches the first queried column, so adding a second column increases processing time but does not affect the estimated bytes scanned.
-- When selecting multiple columns, BigQuery performs an implicit join operation between them, increasing the estimated bytes processed
+- [ ] BigQuery automatically caches the first queried column, so adding a second column increases processing time but does not affect the estimated bytes scanned.
+- [ ] When selecting multiple columns, BigQuery performs an implicit join operation between them, increasing the estimated bytes processed
 
 ## Question 4:
 How many records have a fare_amount of 0?
-- 128,210
-- 546,578
-- 20,188,016
-- 8,333
+- [ ] 128,210
+- [ ] 546,578
+- [ ] 20,188,016
+- [x] 8,333
+
+```sql
+SELECT COUNT(*)
+FROM `dez-terraform.zoomcamp.yellow_2024`
+WHERE fare_amount = 0;
+```
 
 ## Question 5:
 What is the best strategy to make an optimized table in Big Query if your query will always filter based on tpep_dropoff_datetime and order the results by VendorID (Create a new table with this strategy)
-- Partition by tpep_dropoff_datetime and Cluster on VendorID
-- Cluster on by tpep_dropoff_datetime and Cluster on VendorID
-- Cluster on tpep_dropoff_datetime Partition by VendorID
-- Partition by tpep_dropoff_datetime and Partition by VendorID
+- [x] Partition by tpep_dropoff_datetime and Cluster on VendorID
+- [ ] Cluster on by tpep_dropoff_datetime and Cluster on VendorID
+- [ ] Cluster on tpep_dropoff_datetime Partition by VendorID
+- [ ] Partition by tpep_dropoff_datetime and Partition by VendorID
 
+```sql
+CREATE OR REPLACE TABLE dez-terraform.zoomcamp.yellow_2024_partitioned
+PARTITION BY
+  DATE(tpep_dropoff_datetime) 
+CLUSTER BY VendorID AS
+SELECT * FROM `dez-terraform.zoomcamp.yellow_2024`
+```
 
 ## Question 6:
 Write a query to retrieve the distinct VendorIDs between tpep_dropoff_datetime
@@ -51,29 +67,36 @@ Use the materialized table you created earlier in your from clause and note the 
 
 Choose the answer which most closely matches.</br> 
 
-- 12.47 MB for non-partitioned table and 326.42 MB for the partitioned table
-- 310.24 MB for non-partitioned table and 26.84 MB for the partitioned table
-- 5.87 MB for non-partitioned table and 0 MB for the partitioned table
-- 310.31 MB for non-partitioned table and 285.64 MB for the partitioned table
+- [ ] 12.47 MB for non-partitioned table and 326.42 MB for the partitioned table
+- [x] 310.24 MB for non-partitioned table and 26.84 MB for the partitioned table
+- [ ] 5.87 MB for non-partitioned table and 0 MB for the partitioned table
+- [ ] 310.31 MB for non-partitioned table and 285.64 MB for the partitioned table
 
+```sql
+SELECT 
+  DISTINCT VendorID 
+FROM `dez-terraform.zoomcamp.yellow_2024_partitioned`
+WHERE tpep_dropoff_datetime BETWEEN '2024-03-01' AND '2024-03-16';
+```
 
 ## Question 7: 
 Where is the data stored in the External Table you created?
 
-- Big Query
-- Container Registry
-- GCP Bucket
-- Big Table
+- [ ] Big Query
+- [ ] Container Registry
+- [x] GCP Bucket
+- [ ] Big Table
 
 ## Question 8:
 It is best practice in Big Query to always cluster your data:
-- True
-- False
+- [ ] True
+- [x] False
 
 
 ## (Bonus: Not worth points) Question 9:
 No Points: Write a `SELECT count(*)` query FROM the materialized table you created. How many bytes does it estimate will be read? Why?
 
+_0B. In a materialized view, the total table size is already calculated, so it can return the count from the table metadata without querying the data directly._
 
 ## Submitting the solutions
 
@@ -82,3 +105,17 @@ Form for submitting: https://courses.datatalks.club/de-zoomcamp-2026/homework/hw
 ## Solution
 
 Solution: https://www.youtube.com/watch?v=wpLmImIUlPg
+
+---
+
+[Encode service account](https://kestra.io/docs/how-to-guides/google-credentials):
+
+```bash
+echo SECRET_GCP_SERVICE_ACCOUNT=$(cat service-account.json | base64 -w 0) >> .env_encoded
+```
+
+Load flows:
+
+```bash
+curl -X POST -u 'admin@kestra.io:Admin1234!' http://localhost:8080/api/v1/flows/import -F fileUpload=@flows/09_gcp_taxi_scheduled.yaml
+```
